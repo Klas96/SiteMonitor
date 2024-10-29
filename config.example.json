@@ -1,0 +1,65 @@
+{
+    "career_site_urls": [
+        "https://www.example-site.com/enteries"
+    ],
+    "check_interval": 3600,
+    "email": {
+        "sender": "example_sender@example.com",
+        "recipient": "example_recipient@example.com",
+        "smtp_url": "smtp.example.com",
+        "app_password": "example_app_password"
+    },
+    "anthropic_api_key": "ANTHROPIC_API_KEY",
+    "latex_template_path": "templates/cover_letter_template.tex",
+    "user_profile": {
+        "name": "John Doe",
+        "address": "123 Example Street",
+        "city": "Example City",
+        "country": "Example Country",
+        "email": "john.doe@example.com",
+        "skills": [
+          "Example Skill 1",
+          "Example Skill 2",
+          "Example Skill 3"
+        ],
+        "background": [
+          "Example background 1",
+          "Example background 2",
+          "Example background 3"
+        ],
+        "experience": [
+          "Example Company 1",
+          "Example Company 2",
+          "Example Company 3"
+        ],
+        "achievements": [
+          "Example achievement 1",
+          "Example achievement 2",
+          "Example achievement 3"
+        ],
+        "personal_traits": [
+          "Example trait 1",
+          "Example trait 2",
+          "Example trait 3"
+        ],
+        "interests": [
+          "Example interest 1",
+          "Example interest 2",
+          "Example interest 3"
+        ],
+        "future_goals": [
+          "Example future goal 1",
+          "Example future goal 2"
+        ]
+    },
+    "cover_letter_mode": "AI",
+    "default_cover_letter_path": "templates/default_cover_letter.txt",
+    "filters": {
+        "filter_type": "negative",
+        "title_filter": ["Postdoc", "renewable", "Projektledare"]
+    },
+    "debug": {
+        "stop_after_one": false
+    },
+    "send_starting_entries": true
+}

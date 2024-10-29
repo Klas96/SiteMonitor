@@ -1,0 +1,4 @@
+runtime: custom  # Use 'custom' for Docker-based applications
+env: flex  # Specify the environment for custom runtime
+env_variables:
+  Version: '1.0.0'

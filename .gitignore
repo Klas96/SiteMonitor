@@ -28,4 +28,4 @@ data/known_entries.json
 
 .idea/
 .envVar
-.config.json
+config.json

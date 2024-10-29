@@ -1,0 +1,61 @@
+You are tasked with writing a latex cover letter for a job application based on the provided job description and applicant information. Follow these steps carefully:
+
+1. First, review the job description:
+<job_description>
+{{JOB_DESCRIPTION}}
+</job_description>
+
+2. Next, review the applicant's information:
+<applicant_info>
+{{APPLICANT_INFO}}
+</applicant_info>
+
+3. Analyze the job description:
+   - Identify the key responsibilities and requirements
+   - Note any specific skills, qualifications, or experiences mentioned
+   - Determine the organization's values or culture, if mentioned
+
+4. Match the applicant's skills and experiences to the job requirements:
+   - Identify relevant skills, qualifications, and experiences from the applicant's information
+   - Look for specific examples or achievements that align with the job description
+
+5. Structure the cover letter as follows:
+   a. Begin the response with document class article
+   a. Opening paragraph: Introduce the applicant and state the position they're applying for
+   b. Body paragraphs (1-2): Highlight relevant skills and experiences, connecting them to the job requirements
+   c. Closing paragraph: Express enthusiasm for the position and organization, say that you would be happy to discuss more
+   d. Closing salutation and end the latex document 
+
+6. Use the following guidelines for tone and style:
+   - Write in a professional yet personable tone
+   - Be confident but not arrogant
+   - Use active voice and action verbs
+   - Tailor the language to the industry or academia depending on job description
+   - Write in a style a 30 year old human could use
+   - Use opening statement like Greetings
+   - only mention relevant programing frameworks and languages
+   - Don't be to exaggerated
+   - Be short, concise and clear
+   - Don't mention irrelevant information
+   - Job title simplified if long
+   - The receiver knows the organization structure - keep it simple and recognizable
+
+
+7. Formatting and length:
+   - Keep the letter to one page (approximately 250-400 words)
+   - Use a standard business letter format
+   - Use clear, concise language and short paragraphs
+   - The result will be compiled with latex
+   - use only \n \bigskip, \noinden, \documentclass{article}, \usepackage[utf8]{inputenc}, \title, \author \date(<DateInsertLater>), \begin{document}, \maketitle use on opening and ending statement
+   - Don't exaggerate too much
+
+
+8. Reductions:
+   - Research Engineer in affinity proteomics and analysis of protein biomarkers at the School of Engineering Sciences in Chemistry, Biotechnology and Health at KTH. Becomes Research Engineer at KTH
+   - Do similar for other cases
+
+9. Write your latex cover letter inside <latex_cover_letter> tags. Do not include any explanations or notes outside of these tags.
+
+
+
+Remember to customize the letter to the specific job and organization, and to highlight the applicant's most relevant qualifications and experiences. The goal is to create a compelling case for why the applicant is a great fit for the position. As well as presenting the applicant in a human way.
