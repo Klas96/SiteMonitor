@@ -8,12 +8,12 @@ This project automates the generation of personalized cover letters for job appl
 - **Web Scraping**: BeautifulSoup
 - **PDF Generation**: PyLaTeX
 - **Email Sending**: SMTP
-- **API Integration**: Anthropic API for generating cover letter content
+- **API Integration**: Anthropic API for generating content
 - **Deployment**: Google Cloud Platform (GCP)
 - **Containerization**: Docker
 
 ## Deployment
-The application is deployed on **Google Cloud Platform (GCP)** under the project name **Site Monitor**. GCP provides a robust infrastructure to build, run, and operate applications in the cloud.
+The application is deployed using Docker on **Google Cloud Platform (GCP)**.
 
 ## Code Architecture
 The project follows a modular architecture with the following components:

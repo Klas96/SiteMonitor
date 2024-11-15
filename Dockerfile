@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.10.12
 
 # Create and switch to a non-root user
 RUN useradd -m appuser
@@ -7,16 +7,16 @@ WORKDIR /app
 # Copy requirements first for better caching
 COPY requirements.txt .
 
+# Install necessary system packages
+RUN apt-get update && \
+    apt-get install -y texlive-latex-base gettext && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # Install dependencies as root user
 RUN python -m venv /app/venv && \
     . /app/venv/bin/activate && \
-    pip install --no-cache-dir -r requirements.txt
-
-# Install texlive for LaTeX support
-RUN apt-get update && \
-    apt-get install -y texlive-latex-base && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    python -m pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .
@@ -33,5 +33,5 @@ USER appuser
 ENV PORT=8080
 EXPOSE 8080
 
-# Activate virtual environment and run app
+# Run the application
 CMD ["/app/venv/bin/python", "main.py"]

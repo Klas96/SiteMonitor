@@ -29,3 +29,5 @@ data/known_entries.json
 .idea/
 .envVar
 config.json
+config/site_configs/*
+!config/site_configs/exampleSiteConfig.json

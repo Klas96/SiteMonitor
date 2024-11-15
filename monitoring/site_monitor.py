@@ -6,21 +6,22 @@ from pathlib import Path
 import json
 
 class SiteMonitor:
-    def __init__(self, config: dict, parser, content_generator, pdf_generator, email_sender, send_starting_entries: bool = False):
+    def __init__(self, config: dict, parser, email_sender, content_generator=None, pdf_generator=None, send_starting_entries: bool = False):
         self.config = config
         self.parser = parser
         self.content_generator = content_generator
         self.pdf_generator = pdf_generator
         self.email_sender = email_sender
         self.known_entries = self.load_known_entries()
+        self.send_props = config.get('send_props', list(self.parser.selectors.keys()))
         logging.info(f"Loaded {len(self.known_entries)} known entries")
 
         self.send_starting_entries = config['send_starting_entries']
         if not self.send_starting_entries:
-            pass
             # add current entries to known entries
-            #self.known_entries.extend(self.known_entries)
-            #self.save_known_entries()
+            self.known_entries = self.parser.parse_listings(self.fetch_page(self.config['entry_site']['url']))
+            self.known_entries.extend(self.known_entries)
+            self.save_known_entries()
 
     def load_known_entries(self) -> List[Dict]:
         try:
@@ -59,20 +60,27 @@ class SiteMonitor:
             new_entries = current_entries
 
         # Additional filters
-        filters = self.config.get('filters')
-        filtered_entries = [
-            entry for entry in new_entries
-            if not any(title_filter in entry['title'] for title_filter in filters['title_filter'])
-        ]
+        include_filters = self.config.get('include_filters', {})
+        if include_filters:
+            filtered_entries = [
+                entry for entry in new_entries
+                if all(filter_value in entry.get(key, '') for key, filter_value in include_filters.items())
+            ]
+        else:
+            filtered_entries = new_entries
+
+        exclude_filters = self.config.get('exclude_filters', {})
+        if exclude_filters:
+            filtered_entries = [
+                entry for entry in filtered_entries
+                if not any(filter_value in entry.get(key, '') for key, filter_value in exclude_filters.items())
+            ]
 
         return filtered_entries
 
-    def process_new_jobs(self, new_entries: List[Dict]):
-        generated_files = []
+    def process_new_entries(self, new_entries: List[Dict]):
+        generated_entries = []
         for entry in new_entries:
-            if any(known['id'] == entry['id'] for known in self.known_entries):
-                logging.info(f"Skipping known entry {entry['title']}")
-                continue
             try:
                 # Fetch full job description
                 job_description = self.parser.parse_job_description(
@@ -84,36 +92,45 @@ class SiteMonitor:
 
                 # Create PDF
                 latex_content = self.pdf_generator.make_latex_compilable(latex_content)
-                pdf_path = self.pdf_generator.compile_pdf(latex_content, entry)
-                generated_files.append((entry, pdf_path))
+                pdf_path, latex_output_path = self.pdf_generator.compile_pdf(latex_content, entry)
+                generated_entries.append((entry, [pdf_path, latex_output_path]))
 
             except Exception as e:
-                logging.error(f"Error processing job {entry['title']}: {e}")
+                logging.error(f"Error processing entry {entry['title']}: {e}")
 
-        if generated_files:
-            logging.info(f"Sending {len(generated_files)} new notifications")
-            self.email_sender.send_notification(generated_files)
-            self.known_entries.extend(new_entries)
-            self.save_known_entries()
+        return generated_entries
 
     def run(self):
-        logging.info("Starting career site monitor")
-        while True:
-            try:
-                logging.info(f"Fetching page {self.config['career_site_url']}")
-                page_content = self.fetch_page(self.config['career_site_url'])
-                if page_content:
-                    current_entries = self.parser.parse_listings(page_content)
-                    logging.info(f"Found {len(current_entries)} entries on {self.config['career_site_url']}")
-                    selected_entries = self.select_entries(current_entries)
-                    logging.info(f"Found relevant {len(selected_entries)} new entries")
-                    if self.config['debug']['stop_after_one'] and selected_entries:
-                        logging.info(f"Debug mode: stopping after one entry")
-                        selected_entries = selected_entries[:1]
-                    if selected_entries:
-                        self.process_new_jobs(selected_entries)
-                
-                time.sleep(self.config['check_interval'])
-            except Exception as e:
-                logging.error(f"Error in main loop: {e}")
-                time.sleep(60)
+        logging.info(f"Starting site monitor for {self.config['entry_site']['url']}")
+
+        try:
+            logging.info(f"Fetching page {self.config['entry_site']['url']}")
+            page_content = self.fetch_page(self.config['entry_site']['url'])
+            if page_content:
+                current_entries = self.parser.parse_listings(page_content)
+                logging.info(f"Found {len(current_entries)} entries on {self.config['entry_site']['url']}")
+
+                selected_entries = self.select_entries(current_entries)
+                logging.info(f"Found {len(selected_entries)} relevant entries")
+
+                if self.config['debug']['stop_after_one'] and selected_entries:
+                    logging.info(f"Debug mode: stopping after one entry")
+                    selected_entries = selected_entries[:1]
+
+                generated_entries = []
+                # Process entries config loop todo
+                if 'pdf' in self.config['process_entries'] or 'tex' in self.config['process_entries']:
+                    generated_entries = self.process_new_entries(selected_entries)
+
+                if generated_entries:
+                    self.email_sender.send_emails(generated_entries, send_props=self.send_props)
+                else:
+                    generated_entries = [(entry, []) for entry in selected_entries]
+                    self.email_sender.send_emails(generated_entries, send_props=self.send_props)
+
+                self.known_entries.extend(selected_entries)
+                self.save_known_entries()
+
+        except Exception as e:
+            logging.error(f"Error in site monitor: {e}")
+            time.sleep(60)

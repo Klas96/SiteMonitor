@@ -1,7 +1,4 @@
 {
-    "career_site_urls": [
-        "https://www.example-site.com/enteries"
-    ],
     "check_interval": 3600,
     "email": {
         "sender": "example_sender@example.com",

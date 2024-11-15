@@ -10,12 +10,15 @@ from reportlab.pdfgen import canvas
 import re
 
 class PDFGenerator:
-    def __init__(self, config: dict):
-        self.config = config
+    def __init__(self, latex_template_path: str, user_profile: Dict):
+        self.latex_template_path = latex_template_path
+        self.user_profile = user_profile
 
     def substitute_template(self, content: str, job_info: Dict) -> str:
+        # TODO Use for Default Template
+        # Move to content generator
         # latex
-        with open(self.config['latex_template_path'], 'r', encoding='utf-8') as file:
+        with open(self.latex_template_path, 'r', encoding='utf-8') as file:
             template = file.read()
 
         # Determine the language
@@ -34,13 +37,13 @@ class PDFGenerator:
         
         replacements = {
             '{{DATE}}': datetime.now().strftime('%B %d, %Y'),
-            '{{oraganization_NAME}}': job_info['oraganization'],
+            '{{organization_NAME}}': job_info['organization'],
             '{{JOB_TITLE}}': job_info['title'],
             '{{RECIPIENT_NAME}}': 'Hiring Manager',
-            '{{SENDER_NAME}}': self.config['user_profile']['name'],
-            '{{SENDER_ADDRESS}}': self.config['user_profile']['address'],
-            '{{SENDER_CITY}}': self.config['user_profile']['city'],
-            '{{SENDER_EMAIL}}': self.config['user_profile']['email'],
+            '{{SENDER_NAME}}': self.user_profile['name'],
+            '{{SENDER_ADDRESS}}': self.user_profile['address'],
+            '{{SENDER_CITY}}': self.user_profile['city'],
+            '{{SENDER_EMAIL}}': self.user_profile['email'],
             '{{LETTER_CONTENT}}': content,
             '{{TITLE}}': title,
             '{{LANGUAGE}}': language,
@@ -80,11 +83,11 @@ class PDFGenerator:
 
     def compile_pdf(self, latex_content: str, job_info: Dict, method: str = 'latex') -> str:
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        oraganization_name = ''.join(c for c in job_info['oraganization'] if c.isalnum())
-        output_path = Path('cover_letters') / f"Cover_Letter_{oraganization_name}_{timestamp}.pdf"
-        tex_output_path = output_path.with_suffix('.tex')
+        organization_name = ''.join(c for c in job_info['organization'] if c.isalnum())
+        pdf_output_path = Path('cover_letters') / f"Cover_Letter_{organization_name}_{timestamp}.pdf"
+        tex_output_path = pdf_output_path.with_suffix('.tex')
 
-        output_path.parent.mkdir(exist_ok=True)
+        pdf_output_path.parent.mkdir(exist_ok=True)
 
         if method == 'latex':
             try:
@@ -92,7 +95,7 @@ class PDFGenerator:
                 tex_output_path.write_text(latex_content, encoding='utf-8')                
                 try:
                     subprocess.run(
-                        ['pdflatex', '-output-directory', str(output_path.parent), str(tex_output_path)],
+                        ['pdflatex', '-output-directory', str(pdf_output_path.parent), str(tex_output_path)],
                         check=True,
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
@@ -106,7 +109,7 @@ class PDFGenerator:
                 return str(tex_output_path)
         elif method == 'reportlab':
             # Generate a PDF using reportlab with A4 page size
-            c = canvas.Canvas(str(output_path), pagesize=A4)
+            c = canvas.Canvas(str(pdf_output_path), pagesize=A4)
             width, height = A4
 
             # Add content to the PDF
@@ -115,4 +118,4 @@ class PDFGenerator:
             # Save the PDF
             c.save()
 
-        return str(output_path)
+        return str(pdf_output_path), str(tex_output_path)
