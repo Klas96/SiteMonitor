@@ -13,7 +13,7 @@ build/
 Thumbs.db
 
 # Ignore environment files
-.env
+.venv
 
 # Ignore compiled Python files
 *.pyc
