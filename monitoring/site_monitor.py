@@ -4,6 +4,8 @@ import logging
 from typing import List, Dict
 from pathlib import Path
 import json
+import os
+import shutil
 
 class SiteMonitor:
     def __init__(self, config: dict, parser, email_sender, content_generator=None, pdf_generator=None, send_starting_entries: bool = False):
@@ -33,7 +35,7 @@ class SiteMonitor:
 
     def save_known_entries(self):
         with open('data/known_entries.json', 'w') as f:
-            json.dump(self.known_entries, f)
+            json.dump([entry['id'] for entry in self.known_entries], f)
 
     def fetch_page(self, url: str) -> str:
         try:
@@ -124,6 +126,16 @@ class SiteMonitor:
 
                 if generated_entries:
                     self.email_sender.send_emails(generated_entries, send_props=self.send_props)
+                    if self.config['to_disk'] and generated_entries:
+                        for entry, file_paths in generated_entries:
+                            entry_dir = os.path.join('data', entry['id'])
+                            os.makedirs(entry_dir, exist_ok=True)
+                            entry_file_path = os.path.join(entry_dir, 'entry.json')
+                            with open(entry_file_path, 'w') as entry_file:
+                                json.dump(entry, entry_file, indent=4)
+                            for file_path in file_paths:
+                                if file_path and os.path.exists(file_path):
+                                    shutil.copy(file_path, entry_dir)
                 else:
                     generated_entries = [(entry, []) for entry in selected_entries]
                     self.email_sender.send_emails(generated_entries, send_props=self.send_props)

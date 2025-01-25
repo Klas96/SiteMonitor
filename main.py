@@ -13,9 +13,10 @@ from flask import Flask
 import schedule
 import time
 from datetime import datetime
-from threading import Thread
-import json
 from datetime import timedelta
+import argparse
+
+
 def create_directory_structure():
     directories = [
         'logs',
@@ -41,6 +42,7 @@ def init_site_monitor(site_config, config):
             'city': 'Default City, State ZIP',
             'email': 'default.email@example.com'
         })
+        
         # Provide a default latex template path if 'latex_template_path' key is not present
         latex_template_path = site_config.get('latex_template_path', 'templates/default_template.tex')
 
@@ -81,6 +83,7 @@ def run_monitor_instance(site_config, config):
     print(f"Running monitor instance for {site_config['entry_site']['url']}")
     monitor = init_site_monitor(site_config, config)
     monitor.run()
+    print(f"Finished running monitor instance for {site_config['entry_site']['url']}")
 
 def schedule_monitors():
     config_manager = ConfigManager()
@@ -94,21 +97,52 @@ def schedule_monitors():
         
         logging.info(f"Scheduled monitor for {site_config['entry_site']['url']} at {datetime.now() + timedelta(minutes=1)}")
 
-def main():
-    try:
-        print("Initializing site monitor application")
-        schedule_monitors()
-        while True:
-            logging.info(f"Checking for new entries at {datetime.now()}")
-            schedule.run_pending()
-            time.sleep(10*60)
+def list_available_sites(site_configs):
+    print("Available sites to monitor:")
+    for idx, site_config in enumerate(site_configs, start=1):
+        print(f"{idx}. {site_config['entry_site']['url']}")
 
-    except KeyboardInterrupt:
-        print("Application stopped by user")
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='Run site monitor')
+    parser.add_argument('--site', type=str, nargs='*', help='The URL(s) of the site(s) to monitor')
+    parser.add_argument('--list', action='store_true', help='List available sites to monitor')
+    return parser.parse_args()
+
+def main():
+    config_manager = ConfigManager()
+    config = config_manager.load_config()
+    site_configs = config_manager.load_site_configs()
+
+    args = parse_arguments()
+
+    if args.list:
+        list_available_sites(site_configs)
         sys.exit(0)
-    except Exception as e:   
-        print(f"Application crashed: {e}")
-        sys.exit(1)
+
+    if args.site:
+        selected_sites = [sc for sc in site_configs if sc['entry_site']['url'] in args.site]
+        
+        if selected_sites:
+            for site_config in selected_sites:
+                print(f"Running monitor for site: {site_config['entry_site']['url']}")
+                run_monitor_instance(site_config, config)
+        else:
+            print("No valid site configurations found for the specified URLs.")
+            sys.exit(1)
+    else:
+        try:
+            print("Initializing site monitor application")
+            schedule_monitors()
+            while True:
+                logging.info(f"Checking for new entries at {datetime.now()}")
+                schedule.run_pending()
+                time.sleep(10*60)
+        except KeyboardInterrupt:
+            print("Application stopped by user")
+            sys.exit(0)
+        except Exception as e:
+            print(f"Application crashed: {e}")
+            sys.exit(1)
 
 app = Flask(__name__)
 
@@ -118,5 +152,5 @@ def add_monitor():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
-    main() 
+    main()
     app.run(host='0.0.0.0', port=port)

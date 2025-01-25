@@ -40,4 +40,26 @@ To get a local copy up and running, follow these steps:
 ## Usage
 - The application will automatically monitor job listings and generate cover letters.
 - Check the logs for any issues or notifications.
+## Running the Application
 
+To run the application, follow these steps:
+
+1. **Initialize the Application**:
+   - Ensure you have set up your `config.json` file with the necessary configurations.
+   - Make sure all dependencies are installed using `pip install -r requirements.txt`.
+
+2. **Run the Application**:
+   - You can run the application using the following command:
+     ```bash
+     python main.py
+     ```
+
+3. **Command Line Arguments**:
+   - You can list available sites to monitor using:
+     ```bash
+     python main.py --list
+     ```
+   - To monitor specific sites, use:
+     ```bash
+     python main.py --site <site_url_1> <site_url_2> ...
+     ```
